@@ -34,9 +34,6 @@ var (
 		Key: func(ctx echo.Context) string {
 			return ctx.RealIP()
 		},
-		Handler: func(ctx echo.Context) error {
-			return ctx.String(defaultStatusCode, defaultMessage)
-		},
 	}
 )
 
@@ -94,10 +91,18 @@ func New(rediser *redis.Client) echo.MiddlewareFunc {
 }
 
 func NewWithConfig(config Config) echo.MiddlewareFunc {
-	mergo.Merge(&config, DefaultConfig)
+	if err := mergo.Merge(&config, DefaultConfig); err != nil {
+		panic(err)
+	}
 
 	if config.Rediser == nil {
 		panic(errors.New("redis client is missing"))
+	}
+
+	if config.Handler == nil {
+		config.Handler = func(ctx echo.Context) error {
+			return ctx.String(config.StatusCode, config.Message)
+		}
 	}
 
 	limiter := go_limiter.NewLimiter(config.Rediser)
@@ -125,11 +130,14 @@ func NewWithConfig(config Config) echo.MiddlewareFunc {
 
 			// Check if hits exceed the max
 			if !result.Allowed {
+				// Call Handler func
+				err := config.Handler(ctx)
+
 				// Return response with Retry-After header
 				// https://tools.ietf.org/html/rfc6584
 				res.Header().Set("Retry-After", strconv.FormatInt(time.Now().Add(result.RetryAfter).Unix(), 10))
-				// Call Handler func
-				return config.Handler(ctx)
+
+				return err
 			}
 
 			// We can continue, update RateLimit headers
