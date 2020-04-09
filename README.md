@@ -1,6 +1,6 @@
 ## echo_limiter is middleware for echo framework 
 
-echo_limiter using [redis](https://github.com/go-redis/redis) as store for rate limit with two algorithms for choosing simple, gcra [leaky bucket](https://en.wikipedia.org/wiki/Leaky_bucket)
+echo_limiter using [redis](https://github.com/go-redis/redis) as store for rate limit with two algorithms for choosing sliding window, gcra [leaky bucket](https://en.wikipedia.org/wiki/Leaky_bucket)
 
 ### Install
 ```

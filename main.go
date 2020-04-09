@@ -13,11 +13,11 @@ import (
 )
 
 const (
-	SimpleAlgorithm   = "simple"
-	GCRAAlgorithm     = "gcra"
-	DefaultKeyPrefix  = "echo_limiter"
-	defaultMessage    = "Too many requests, please try again later."
-	defaultStatusCode = http.StatusTooManyRequests
+	SlidingWindowAlgorithm = go_limiter.SlidingWindowAlgorithm
+	GCRAAlgorithm          = go_limiter.GCRAAlgorithm
+	DefaultKeyPrefix       = "echo_limiter"
+	defaultMessage         = "Too many requests, please try again later."
+	defaultStatusCode      = http.StatusTooManyRequests
 )
 
 var (
@@ -28,7 +28,7 @@ var (
 		StatusCode: defaultStatusCode,
 		Message:    defaultMessage,
 		Prefix:     DefaultKeyPrefix,
-		Algorithm:  SimpleAlgorithm,
+		Algorithm:  SlidingWindowAlgorithm,
 		Period:     time.Minute,
 		Key: func(ctx echo.Context) string {
 			return ctx.RealIP()
@@ -59,8 +59,8 @@ type (
 		Message string
 
 		// Algorithm
-		// Default: simple
-		Algorithm string
+		// Default: sliding window
+		Algorithm uint
 
 		// Prefix
 		// Default:
@@ -124,7 +124,7 @@ func NewWithConfig(config Config) echo.MiddlewareFunc {
 		config.Message = DefaultConfig.Message
 	}
 
-	if config.Algorithm == "" {
+	if config.Algorithm == 0 {
 		config.Algorithm = DefaultConfig.Algorithm
 	}
 
