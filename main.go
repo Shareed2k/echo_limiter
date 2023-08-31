@@ -153,6 +153,8 @@ func NewWithConfig(config Config) echo.MiddlewareFunc {
 	}
 
 	limiter := go_limiter.NewLimiter(config.Rediser)
+	limiter.Prefix = config.Prefix
+
 	limit := &go_limiter.Limit{
 		Period:    config.Period,
 		Algorithm: config.Algorithm,
